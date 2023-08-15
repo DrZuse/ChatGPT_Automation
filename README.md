@@ -12,7 +12,7 @@ Before you begin, please ensure that you have Chrome installed on your system. T
 ## Installation
 
 ```
-pip install git+https://github.com/ugorsahin/ChatGPT_Automation
+pip install git+https://github.com/DrZuse/ChatGPT_Automation
 ```
 
 ## Usage
