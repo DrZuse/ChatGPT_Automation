@@ -11,6 +11,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import selenium.common.exceptions as Exceptions
+from dotenv import load_dotenv
 
 #from .helpers import detect_chrome_version
 from helpers import detect_chrome_version
@@ -47,10 +48,12 @@ class ChatGPT_Client:
         driver_executable_path      :str    = None,
         driver_arguments            :list   = None,
         driver_version              :int    = None,
-        verbose                     :bool   = False
+        verbose                     :bool   = False,
+        ua                          :str    = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.203'
     ):
-
-        u_cookie = u_cookie or os.environ.get('u_cookie')
+        # Load environment variables from .env file
+        load_dotenv()
+        u_cookie = u_cookie or os.getenv('u_cookie')
 
         if not u_cookie:
             logging.error('Either provide username or set the environment variable "u_cookie"')
@@ -60,6 +63,7 @@ class ChatGPT_Client:
             logging.getLogger().setLevel(logging.INFO)
             logging.info('Verbose mode active')
         options = uc.ChromeOptions()
+        options.add_argument('--user-agent=' + ua)
         if incognito:
             options.add_argument('--incognito')
         if headless:
@@ -79,8 +83,27 @@ class ChatGPT_Client:
         logging.info('Loaded Undetected chrome')
         logging.info('Opening chatgpt')
         self.browser.get('https://bing.com/chat')
+        self.browser.add_cookie({"name": "_U", "value": u_cookie})
 
         logging.info('ChatGPT is ready to interact')
+
+
+    def accept_cookies(self):
+        '''
+        Accept annoing cookie message
+        '''
+        
+        #accept_button = self.browser.find_elements(By.ID, 'bnp_btn_accept')
+        #if len(accept_button):
+        try:
+            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.ID, 'bnp_btn_accept'))).click()
+            #accept_button[0]
+            logging.info('Clicked accept cookie button')
+        except Exceptions.ElementNotInteractableException:
+            logging.info('accept cookie button is not present or clickable')
+
+        return
+
 
     def pass_verification(self):
         '''
@@ -228,6 +251,7 @@ class ChatGPT_Client:
             ).until_not(
                 EC.presence_of_element_located((by, query))
             )
+            
             logging.info(f'Element {query} disappeared.')
         except Exceptions.TimeoutException:
             logging.info(f'Element {query} still here, something is wrong.')
@@ -297,28 +321,32 @@ class ChatGPT_Client:
             logging.error('Regenerate button is not present')
         return answer
 
-    def switch_model(self, model_name : str):
+    def switch_model(self, model_name: str):
         '''
-        Switch the model for ChatGPT+ users.
+        Choose a conversation style.
 
         Args:
-            model_name: str = The name of the model, either GPT-3.5 or GPT-4
+            model_name: str = Conversation style: creative | balanced | precise
 
         Returns:
             bool: True on success, False on fail
         '''
-        if model_name in ['GPT-3.5', 'GPT-4']:
+        if model_name in ['creative', 'balanced', 'precise']:
             logging.info(f'Switching model to {model_name}')
             try:
-                self.browser.find_element(By.XPATH, self.gpt_xq.format(model_name)).click()
+                WebDriverWait(self.browser, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.tone-precise'))).click()
+                #self.browser.find_element(By.CLASS_NAME, 'tone-'+model_name).click()
                 return True
             except Exceptions.NoSuchElementException:
-                logging.error('Button is not present')
+                logging.error(f'Button [{model_name}] is not present')
         return False
 
 if __name__ == '__main__':
-    chatgpt = ChatGPT_Client()
-    time.sleep(100)
+    chatgpt = ChatGPT_Client(verbose=True)
+    chatgpt.accept_cookies()
+    time.sleep(5)
+    chatgpt.switch_model('precise')
+    time.sleep(1000)
 
 
     # result = chatgpt.interact('Hello, how are you today')
