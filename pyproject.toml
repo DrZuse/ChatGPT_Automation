@@ -5,7 +5,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 authors = [
-  { name="Ugur Sahin", email="ugorsahin@tutanota.de"},
+  { name="DrZuse", email="none"},
 ]
 
 [project]
@@ -25,4 +25,4 @@ dependencies = [
 ]
 
 [project.urls]
-Source = "https://github.com/ugorsahin/ChatGPT_Automation"
+Source = "https://github.com/DrZuse/ChatGPT_Automation"
