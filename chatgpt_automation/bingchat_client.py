@@ -12,6 +12,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import selenium.common.exceptions as Exceptions
 from dotenv import load_dotenv
+from pyshadow.main import Shadow
 
 #from .helpers import detect_chrome_version
 from helpers import detect_chrome_version
@@ -86,6 +87,10 @@ class ChatGPT_Client:
         self.browser.add_cookie({"name": "_U", "value": u_cookie})
 
         logging.info('ChatGPT is ready to interact')
+
+        self.shadow = Shadow(self.browser)
+        self.shadow.set_explicit_wait(5, 1)
+        
 
 
     def accept_cookies(self):
@@ -334,7 +339,9 @@ class ChatGPT_Client:
         if model_name in ['creative', 'balanced', 'precise']:
             logging.info(f'Switching model to {model_name}')
             try:
-                WebDriverWait(self.browser, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.tone-precise'))).click()
+                #WebDriverWait(self.browser, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.tone-precise'))).click()
+                #self.shadow.find_element(".tone-precise").click()
+                self.shadow.find_element('.tone-precise').click()
                 #self.browser.find_element(By.CLASS_NAME, 'tone-'+model_name).click()
                 return True
             except Exceptions.NoSuchElementException:
